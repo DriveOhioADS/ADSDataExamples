@@ -1,4 +1,5 @@
 from ADSDynamo import ADSDynamo
+import pickle
 
 #setup the database interface
 datainterface = ADSDynamo()
@@ -29,9 +30,14 @@ groupids=[
 #     datain.append(data)
 # for data in datain:
 #     print(f"groupid -> {len(data)} @ {data[0]['foldername']}")
-
-
-response = datainterface.GrabGPSDataSetFast(groupids[0], limit = 299)
+groupidlook = groupids[11]
+qlimit = 50000000
+canbus_chassis = datainterface.GrabCanbusChassis(groupidlook, limit = qlimit)
+#print(canbus_chassis)
+# drivingMode -> COMPLETE_AUTO_DRIVE, COMPLETE_MANUAL, EMERGENCY_MODE
+response = datainterface.GrabGPSDataSetFast(groupidlook, limit = qlimit)
+canbus_chassis = canbus_chassis['items']
+pickle.dump(canbus_chassis,open('canbus.pkl','wb'))
 items = response['items']
 duration_s = response['duration_sec']
 print(f"Query took {duration_s} seconds")
@@ -39,7 +45,8 @@ count = 1
 for item in items:
     print(f"{count}: {item['_id']},{item['time']},{item['topic']},{item['latitude']},{item['longitude']},{item['heightMsl']}")
     count = count + 1
+GPSLocations = items
 
-  
+pickle.dump(GPSLocations,open('gpsloc.pkl','wb'))
 
     

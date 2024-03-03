@@ -19,11 +19,14 @@ class ADSDynamo:
         print("Table status: ", self.metatable.table_status)
         
      
-    def GrabMetaDataByGroupID(self, groupid):
+    def GrabMetaDataByGroupID(self, groupid, ProjectionExpression=None):
         kwargs = {
                     'IndexName': 'groupMetadataID-index',
                     'KeyConditionExpression': Key('groupMetadataID').eq(groupid)
                }
+        if(ProjectionExpression is not None):
+            kwargs['ProjectionExpression'] = ProjectionExpression['ProjectionExpression']
+            kwargs['ExpressionAttributeNames'] = ProjectionExpression['ExpressionAttributeNames']
         return self.QueryMetaDataUsingCondition(kwargs)
     
     def GrabMetaDataByTime(self, time):
@@ -34,7 +37,7 @@ class ADSDynamo:
         return self.QueryMetaDataUsingCondition(kwargs)
     
     def QueryMetaDataUsingCondition(self, kwargs):
-        spinner = Halo(text='Performing query', text_color= 'cyan', color='green', spinner='dots')
+        spinner = Halo(text='Performing query', text_color= 'cyan', color='red', spinner='dots')
         spinner.start()
         items = []
         items_scanned = 0
@@ -48,10 +51,11 @@ class ADSDynamo:
                     kwargs["ExclusiveStartKey"] = start_key
                 response = self.metatable.query(**kwargs)
                 items_scanned = items_scanned + response['ScannedCount']
-                item_count = item_count = response['Count']
+                item_count = response['Count']
                 items.extend(response.get("Items", []))
                 start_key = response.get("LastEvaluatedKey", None)
                 #print(f"{start_key} / {items_scanned} - {len(items)} + {item_count}")
+                spinner.text = f'Items found via query -> {items_scanned}'
                 done = start_key is None
         except botocore.exceptions.ClientError as err:
             print(f"Couldn't scan for item. Here's why: {err.response['Error']['Code']} -> {err.response['Error']['Message']}")
@@ -78,6 +82,12 @@ class ADSDynamo:
         #return {"items":items,"duration_sec":time_total}
         return totallist
      
+    def GrabCanbusChassis(self,groupID, limit=None):
+        return self.GrabCyberDataByTopic(groupID,'/apollo/canbus/chassis',limit=limit)
+    
+    def GrabDriveEvent(self,groupID, limit=None):
+        return self.GrabCyberDataByTopic(groupID,'/apollo/drive_event',limit=limit)
+    
     def GrabGPSDataSet(self,groupID, limit=None):
         return self.GrabCyberDataByTopic(groupID,'/apollo/sensor/gnss/best_pose',limit=limit)
     
