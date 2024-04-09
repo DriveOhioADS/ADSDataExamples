@@ -13,9 +13,16 @@ s3location = ""
 with open('s3location.txt') as f:
     s3location=f.readline().replace('\n','')
 print(f"Path to s3 data: {s3location}")
-searchlist = {"Deployment_2_SEOhio/Blue Route/OU Pacifica/",
-              "Deployment_2_SEOhio/RedRoute/OU Pacifica/",
-            "Deployment_2_SEOhio/GreenRoute/OU Pacifica/"}
+searchlist = {  "Deployment_2_SEOhio/Blue Route/OU Pacifica/",
+                "Deployment_2_SEOhio/RedRoute/OU Pacifica/",
+                "Deployment_2_SEOhio/GreenRoute/OU Pacifica/",
+                "Deployment_2_SEOhio/RedRoute/TRCVan1/",
+                "Deployment_2_SEOhio/RedRoute/TRCVan2/",
+                "Deployment_2_SEOhio/GreenRoute/TRCVan1/",
+                "Deployment_2_SEOhio/GreenRoute/TRCVan2/",
+                "Deployment_2_SEOhio/Blue Route/TRCVan1/",
+                "Deployment_2_SEOhio/Blue Route/TRCVan2/"
+                }
 group_list = []
 skipped = []
 for search in searchlist:
@@ -42,6 +49,8 @@ ProjectionExpression['ProjectionExpression'] = "#_id, #time, endTime, filename, 
 ProjectionExpression['ExpressionAttributeNames'] = {"#_id":"_id", "#time":"time"}
 for groupid in group_list:
     metadata = datainterface.GrabMetaDataByGroupID(groupid, ProjectionExpression)
+    if(len(metadata)==0):
+        continue
     #print(metadata)
     metadata.sort(key=lambda x:x['time'])
     start_time = metadata[0]['time']
